@@ -24,28 +24,30 @@ onRecordBeforeCreateRequest((e) => {
         record.set("role", "user");
     }
 
-    // 4. Generate unique user_referral_code
-    let isCodeUnique = false;
-    let referralCode = "";
-    while (!isCodeUnique) {
-        // Generate a 6-8 character alphanumeric code
-        referralCode = `NEXUS-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
-        try {
-            // Check if a user with this referral code already exists
-            const existingUser = $app.dao().findFirstRecordByData("users", "user_referral_code", referralCode);
-            // If findFirstRecordByData doesn't throw, it means a user was found, so the code is not unique.
-            // Loop again to generate a new code.
-        } catch (err) {
-            // If it's a 404 error, it means no user was found with this code, so it's unique.
-            if (err.status === 404) {
-                isCodeUnique = true;
-            } else {
-                // For any other errors (database issues, etc.), re-throw to halt the process.
-                throw err;
-            }
-        }
-    }
-    record.set("user_referral_code", referralCode);
+     // 4. Generate unique user_referral_code
+     let isCodeUnique = false;
+     let referralCode = "";
+     while (!isCodeUnique) {
+         // Generate a 6-digit random number, pad with leading zeros if needed for consistency
+         const randomNumber = Math.floor(100000 + Math.random() * 900000); // Ensures 6 digits
+         referralCode = `edunexus-${randomNumber}`; // Updated format
+         try {
+             // Check if a user with this referral code already exists
+             // No need to assign to existingUser if you only care about the error/success
+             $app.dao().findFirstRecordByData("users", "user_referral_code", referralCode);
+             // If findFirstRecordByData doesn't throw, it means a user was found, so the code is not unique.
+             // Loop again to generate a new code.
+         } catch (err) {
+             // If it's a 404 error, it means no user was found with this code, so it's unique.
+             if (err.status === 404) {
+                 isCodeUnique = true;
+             } else {
+                 // For any other errors (database issues, etc.), re-throw to halt the process.
+                 throw err;
+             }
+         }
+     }
+     record.set("user_referral_code", referralCode);
 
     // 5. Initialize referral_stats (if not already set by client - defensive)
     const referralStats = record.get("referral_stats");
